@@ -101,7 +101,7 @@ function graph(canvas, data, options = {}) {
 }
 
 var c = document.createElement('canvas');
-var dims = [400, 300];
+var dims = [400, 100];
 [c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
 [c.style.width, c.style.height] = dims.map(x => x + 'px');
 document.body.appendChild(c);
@@ -116,6 +116,8 @@ setInterval(function () {
 	if(data[data.length - 1][0] < Date.now() - 1000) {
 		data.push([Date.now(), Math.random()]);
 	}
+
+	if(data[0][0] < Date.now() - 22000) data.shift();
 }, 1000);
 
 (function draw() {
