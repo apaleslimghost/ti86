@@ -30,10 +30,13 @@ var normaliseAll = (data, options = {}) => transpose(
 	))
 );
 
-var group = n => xs => (
-	  xs.length < n? []
-	: /*otherwise*/  [xs.slice(0, n), ...group(n)(xs.slice(1))]
-);
+var group = n => xs => {
+	var out = [];
+	for(let i = 0, l = xs.length; i < l + 1 - n; ++i) {
+		out.push(xs.slice(i, i + n));
+	}
+	return out;
+};
 
 var rawGrad = ([[x1, y1], [x2, y2]]) => (y2 - y1)/(x2 - x1);
 
