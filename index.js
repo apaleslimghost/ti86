@@ -115,7 +115,6 @@ var data = Array.from(Array(20)).map((_, i) => [
 ]);
 
 setInterval(function () {
-	data = data.map(([x, y]) => [x - 0.01, y]);
 	if(data[data.length - 1][0] < Date.now() - 1000) {
 		data.push([Date.now(), Math.random()]);
 	}
