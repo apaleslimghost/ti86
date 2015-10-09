@@ -101,7 +101,7 @@ function graph(canvas, data, options = {}) {
 }
 
 var c = document.createElement('canvas');
-var dims = [400, 100];
+var dims = [window.innerWidth, 100];
 [c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
 [c.style.width, c.style.height] = dims.map(x => x + 'px');
 document.body.appendChild(c);
