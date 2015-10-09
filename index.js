@@ -12,11 +12,13 @@ var inLast = (...args) => {
 	return x => moment(x).isAfter(then);
 };
 
-var zipWith = fn => (xs, ys) => ( 
-	  xs.length === 0? []
-	: ys.length === 0? []
-	: /*otherwise*/    [fn(xs[0], ys[0])].concat(zipWith(fn)(xs.slice(1), ys.slice(1)))
-);
+var zipWith = fn => (xs, ys) => { 
+	var out = [];
+	for(let i = 0, l = Math.min(xs.length, ys.length); i < l; ++i) {
+		out.push(fn(xs[i], ys[i]));
+	}
+	return out;
+};
 
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
