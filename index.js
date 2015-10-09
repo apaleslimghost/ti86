@@ -53,19 +53,14 @@ function graph(data) {
 		var g1 = gradients[i];
 		var g2 = gradients[i+1];
 
-		var y0_1 = y1 - x1 * g1;
-		var y0_2 = y2 - x2 * g2;
-
 		var c1 = [
 			x1 + 50,
-			g1 * (x1 + 50) + y0_1
+			g1 * 50 + y1
 		];
 		var c2 = [
 			x2 - 50,
-			g2 * (x2 - 50) + y0_2
+			g2 * -50 + y2
 		];
-
-		console.log([x1, y1], c1, c2, [x2, y2]);
 
 		ctx.moveTo(x1, y1);
 		ctx.bezierCurveTo(
