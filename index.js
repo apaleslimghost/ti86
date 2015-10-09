@@ -53,13 +53,20 @@ function graph(data) {
 		var g1 = gradients[i];
 		var g2 = gradients[i+1];
 
+		var x_25 = x1 + (x2 - x1) / 4;
+		var x_75 = x1 + 3 * (x2 - x1) / 4;
+		console.log(x_25, x_75)
+
+		var y0_1 = y1 - g1 * x1;
+		var y0_2 = y2 - g2 * x2;
+
 		var c1 = [
-			x1 + 50,
-			g1 * 50 + y1
+			x_25,
+			g1 * x_25 + y0_1
 		];
 		var c2 = [
-			x2 - 50,
-			g2 * -50 + y2
+			x_75,
+			g2 * x_75 + y0_2
 		];
 
 		ctx.moveTo(x1, y1);
