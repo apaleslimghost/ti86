@@ -20,7 +20,15 @@ var zipWith = fn => (xs, ys) => (
 
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
-var normaliseAll = (max, data) => transpose(transpose(data).map((xs, i) => xs.map(normalise(max[i], ...bounds(xs)))));
+var normaliseAll = (data, options = {}) => transpose(
+	transpose(data)
+	.map((xs, i) => xs.map(
+		normalise(
+			options.scale ? options.scale[i] : 1,
+			...(options.bounds ? options.bounds[i] : bounds(xs))
+		)
+	))
+);
 
 var group = n => xs => (
 	  xs.length < n? []
@@ -44,13 +52,14 @@ var gradient = xs => i => (
 	: /*otherwise*/        rawGrad([xs[i-1], xs[i+1]])
 );
 
-function graph(canvas, data) {
+function graph(canvas, data, options = {}) {
 	var ctx = canvas.getContext('2d');
 	ctx.save();
 	ctx.translate(0, c.height);
 	ctx.scale(1, -1);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	var normd = normaliseAll([canvas.width, canvas.height], data);
+	var normd = normaliseAll(data, {scale: [canvas.width, canvas.height], bounds: options.bounds});
 	var gradients = data.map((_, i) => i).map(gradient(normd));
 
 	ctx.beginPath();
@@ -97,6 +106,19 @@ var dims = [400, 300];
 [c.style.width, c.style.height] = dims.map(x => x + 'px');
 document.body.appendChild(c);
 
-graph(c, Array.from(Array(20)).map((_, i) => [
-	i + Math.random(), Math.random()
-]))
+var data = Array.from(Array(20)).map((_, i) => [
+	i, Math.random()
+]);
+
+setInterval(function () {
+	data = data.map(([x, y]) => [x - 0.01, y]);
+	if(data[data.length - 1][0] < 18) {
+		data.push([19, Math.random()]);
+		data.push([20, Math.random()]);
+	}
+}, 10);
+
+(function draw() {
+	graph(c, data, {bounds: [[0, 18], [0, 1]]});
+	requestAnimationFrame(draw);
+}());
