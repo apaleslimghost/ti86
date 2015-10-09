@@ -7,11 +7,6 @@ var bounds = xs => xs.reduce(([min, max], x) => [
 
 var normalise = (scale, min, max) => x => scale * (x - min) / (max - min);
 
-var inLast = (...args) => {
-	var then = moment().subtract(...args);
-	return x => moment(x).isAfter(then);
-};
-
 var zipWith = fn => (xs, ys) => { 
 	var out = [];
 	for(let i = 0, l = Math.min(xs.length, ys.length); i < l; ++i) {
