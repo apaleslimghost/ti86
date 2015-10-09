@@ -35,19 +35,14 @@ var gradient = xs => i => rawGrad(
 	: /*otherwise*/        [xs[i-1], xs[i+1]]
 );
 
-var c = document.createElement('canvas');
-var dims = [400, 300];
-var pixels = [c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
-[c.style.width, c.style.height] = dims.map(x => x + 'px');
-document.body.appendChild(c);
-var ctx = c.getContext('2d');
 
-ctx.translate(0, c.height);
-ctx.scale(1, -1);
+function graph(canvas, data) {
+	var ctx = canvas.getContext('2d');
+	ctx.save();
+	ctx.translate(0, c.height);
+	ctx.scale(1, -1);
 
-
-function graph(data) {
-	var normd = normaliseAll(pixels, data);
+	var normd = normaliseAll([canvas.width, canvas.height], data);
 	var gradients = data.map((_, i) => i).map(gradient(normd));
 
 	ctx.beginPath();
@@ -84,8 +79,16 @@ function graph(data) {
 		ctx.ellipse(x, y, 2, 2, 0, 0, τ);
 		ctx.fill();
 	});
+
+	ctx.restore();
 }
 
-graph(Array.from(Array(20)).map((_, i) => [
+var c = document.createElement('canvas');
+var dims = [400, 300];
+[c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
+[c.style.width, c.style.height] = dims.map(x => x + 'px');
+document.body.appendChild(c);
+
+graph(c, Array.from(Array(20)).map((_, i) => [
 	i + Math.random(), Math.random()
 ]))
