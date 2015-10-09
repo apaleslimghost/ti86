@@ -29,12 +29,20 @@ var group = n => xs => (
 
 var rawGrad = ([[x1, y1], [x2, y2]]) => (y2 - y1)/(x2 - x1);
 
-var gradient = xs => i => rawGrad(
-	  i === 0?             [xs[0],   xs[1]]
-	: i === xs.length - 1? [xs[i-1], xs[i]]
-	: /*otherwise*/        [xs[i-1], xs[i+1]]
+var isDerivZero = ([y1, y2, y3]) => (
+	   y1 < y2 && y3 < y2
+	|| y1 > y2 && y3 > y2
 );
 
+var gradient = xs => i => (
+	  i === 0?             rawGrad([xs[0],   xs[1]])
+	: i === xs.length - 1? rawGrad([xs[i-1], xs[i]])
+	: isDerivZero(
+	  	xs.slice(i-1, i+2)
+	  	.map(p => p[1])
+	  )?                   0
+	: /*otherwise*/        rawGrad([xs[i-1], xs[i+1]])
+);
 
 function graph(canvas, data) {
 	var ctx = canvas.getContext('2d');
