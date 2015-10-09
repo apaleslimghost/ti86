@@ -93,8 +93,11 @@ function graph(canvas, data, options = {}) {
 
 	normd.forEach(([x, y]) => {
 		ctx.beginPath();
-		ctx.ellipse(x, y, 2, 2, 0, 0, τ);
+		ctx.ellipse(x, y, 3, 3, 0, 0, τ);
 		ctx.fill();
+		ctx.strokeStyle = 'white';
+		ctx.lineWidth = 2;
+		ctx.stroke();
 	});
 
 	ctx.restore();
