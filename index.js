@@ -1,3 +1,5 @@
+const τ = 2 * Math.PI;
+
 var bounds = xs => xs.reduce(([min, max], x) => [
 	Math.min(min, x),
 	Math.max(max, x)
@@ -43,19 +45,18 @@ var ctx = c.getContext('2d');
 ctx.translate(0, c.height);
 ctx.scale(1, -1);
 
-ctx.beginPath();
 
 function graph(data) {
 	var normd = normaliseAll(pixels, data);
 	var gradients = data.map((_, i) => i).map(gradient(normd));
 
+	ctx.beginPath();
 	group(2)(normd).forEach(([[x1, y1], [x2, y2]], i) => {
 		var g1 = gradients[i];
 		var g2 = gradients[i+1];
 
 		var x_25 = x1 + (x2 - x1) / 4;
 		var x_75 = x1 + 3 * (x2 - x1) / 4;
-		console.log(x_25, x_75)
 
 		var y0_1 = y1 - g1 * x1;
 		var y0_2 = y2 - g2 * x2;
@@ -77,10 +78,14 @@ function graph(data) {
 	});
 
 	ctx.stroke();
+
+	normd.forEach(([x, y]) => {
+		ctx.beginPath();
+		ctx.ellipse(x, y, 2, 2, 0, 0, τ);
+		ctx.fill();
+	});
 }
 
-graph([
-	[1, 1],
-	[2, 4],
-	[3, 5]
-])
+graph(Array.from(Array(20)).map((_, i) => [
+	i + Math.random(), Math.random()
+]))
