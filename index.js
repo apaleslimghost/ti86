@@ -13,7 +13,7 @@ var inLast = (...args) => {
 var zipWith = fn => (xs, ys) => ( 
 	  xs.length === 0? []
 	: ys.length === 0? []
-	: /* otherwise */  [fn(xs[0], ys[0])].concat(zipWith(fn)(xs.slice(1), ys.slice(1)))
+	: /*otherwise*/    [fn(xs[0], ys[0])].concat(zipWith(fn)(xs.slice(1), ys.slice(1)))
 );
 
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
@@ -22,27 +22,63 @@ var normaliseAll = (max, data) => transpose(transpose(data).map((xs, i) => xs.ma
 
 var group = n => xs => (
 	  xs.length < n? []
-	: [xs.slice(0, n), ...group(n)(xs.slice(1))]
+	: /*otherwise*/  [xs.slice(0, n), ...group(n)(xs.slice(1))]
+);
+
+var rawGrad = ([[x1, y1], [x2, y2]]) => (y2 - y1)/(x2 - x1);
+
+var gradient = xs => i => rawGrad(
+	  i === 0?             [xs[0],   xs[1]]
+	: i === xs.length - 1? [xs[i-1], xs[i]]
+	: /*otherwise*/        [xs[i-1], xs[i+1]]
 );
 
 var c = document.createElement('canvas');
-var dims = [800, 600];
-[c.width, c.height] = dims;
-[c.style.width, c.style.height] = dims.map(x => x/2 + 'px');
+var dims = [400, 300];
+var pixels = [c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
+[c.style.width, c.style.height] = dims.map(x => x + 'px');
 document.body.appendChild(c);
 var ctx = c.getContext('2d');
 
+ctx.translate(0, c.height);
+ctx.scale(1, -1);
+
 ctx.beginPath();
-group(2)(normaliseAll(dims, [
+
+function graph(data) {
+	var normd = normaliseAll(pixels, data);
+	var gradients = data.map((_, i) => i).map(gradient(normd));
+
+	group(2)(normd).forEach(([[x1, y1], [x2, y2]], i) => {
+		var g1 = gradients[i];
+		var g2 = gradients[i+1];
+
+		var y0_1 = y1 - x1 * g1;
+		var y0_2 = y2 - x2 * g2;
+
+		var c1 = [
+			x1 + 50,
+			g1 * (x1 + 50) + y0_1
+		];
+		var c2 = [
+			x2 - 50,
+			g2 * (x2 - 50) + y0_2
+		];
+
+		console.log([x1, y1], c1, c2, [x2, y2]);
+
+		ctx.moveTo(x1, y1);
+		ctx.bezierCurveTo(
+			...c1, ...c2,
+			x2, y2
+		);
+	});
+
+	ctx.stroke();
+}
+
+graph([
 	[1, 1],
 	[2, 4],
-	[3, 5],
-])).forEach(([[x1, y1], [x2, y2]]) => {
-	ctx.moveTo(x1, dims[1] - y1);
-	ctx.bezierCurveTo(
-		x1 * 1.5, dims[1] - y1,
-		x2 * 0.5, dims[1] - y2,
-		x2, dims[1] - y2
-	);
-});
-ctx.stroke();
+	[3, 5]
+])
