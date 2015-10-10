@@ -54,6 +54,14 @@ var gradient = xs => i => (
 );
 
 var defaultOptions = {
+	pre(ctx, canvas) {
+		ctx.translate(0, canvas.height);
+		ctx.scale(1, -1);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+	},
+
+	post() {},
+
 	prePaths(ctx, data) {
 		ctx.beginPath();
 		this.pathStyle(ctx);
@@ -130,15 +138,16 @@ function graph(canvas, data, options) {
 
 	var ctx = canvas.getContext('2d');
 	ctx.save();
-	ctx.translate(0, canvas.height);
-	ctx.scale(1, -1);
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	options.pre(ctx, canvas);
+	
 	var normd = normaliseAll(data, {scale: [canvas.width, canvas.height], bounds: options.bounds});
 
 	options.prePaths(ctx, normd);
 	options.drawPaths(ctx, normd);
 	options.postPaths(ctx, normd);
+
+	options.post(ctx);
 
 	ctx.restore();
 }
