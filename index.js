@@ -54,10 +54,10 @@ var gradient = xs => i => (
 );
 
 var defaultOptions = {
-	pre(ctx, canvas) {
-		ctx.translate(0, canvas.height);
+	pre(ctx) {
+		ctx.translate(0, ctx.canvas.height);
 		ctx.scale(1, -1);
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	},
 
 	post() {},
