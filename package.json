@@ -24,6 +24,7 @@
     "@quarterto/browser": "^1.0.0",
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
+    "pleasejs": "^0.4.2",
     "watchify": "^3.4.0"
   },
   "dependencies": {
