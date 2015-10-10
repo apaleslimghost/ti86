@@ -63,6 +63,7 @@ function graph(canvas, data, options = {}) {
 	var gradients = data.map((_, i) => i).map(gradient(normd));
 
 	ctx.beginPath();
+	ctx.lineWidth = 1*devicePixelRatio;
 	group(2)(normd).forEach(([[x1, y1], [x2, y2]], i) => {
 		var g1 = gradients[i];
 		var g2 = gradients[i+1];
@@ -93,10 +94,10 @@ function graph(canvas, data, options = {}) {
 
 	normd.forEach(([x, y]) => {
 		ctx.beginPath();
-		ctx.ellipse(x, y, 3, 3, 0, 0, τ);
+		ctx.ellipse(x, y, 3 * devicePixelRatio, 3 * devicePixelRatio, 0, 0, τ);
 		ctx.fill();
 		ctx.strokeStyle = 'white';
-		ctx.lineWidth = 2;
+		ctx.lineWidth = 2 * devicePixelRatio;
 		ctx.stroke();
 	});
 
