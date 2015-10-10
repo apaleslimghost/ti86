@@ -1,3 +1,4 @@
+const defaults = require('defaults');
 const τ = 2 * Math.PI;
 
 var bounds = xs => xs.reduce(([min, max], x) => [
@@ -52,78 +53,94 @@ var gradient = xs => i => (
 	: /*otherwise*/        rawGrad([xs[i-1], xs[i+1]])
 );
 
-function graph(canvas, data, options = {}) {
+var defaultOptions = {
+	prePaths(ctx, data) {
+		ctx.beginPath();
+		this.pathStyle(ctx);
+		this.gradients = data.map((_, i) => i).map(gradient(data));
+	},
+
+	pathStyle(ctx) {
+		ctx.lineWidth = 1 * devicePixelRatio;
+	},
+
+	drawPaths(ctx, points) {
+		group(2)(points).forEach(([[x1, y1], [x2, y2]], i) => {
+			var g1 = this.gradients[i];
+			var g2 = this.gradients[i+1];
+
+			var x_25 = x1 + (x2 - x1) / 4;
+			var x_75 = x1 + 3 * (x2 - x1) / 4;
+
+			var y0_1 = y1 - g1 * x1;
+			var y0_2 = y2 - g2 * x2;
+
+			var c1 = [
+				x_25,
+				g1 * x_25 + y0_1
+			];
+			var c2 = [
+				x_75,
+				g2 * x_75 + y0_2
+			];
+
+			ctx.moveTo(x1, y1);
+			ctx.bezierCurveTo(
+				...c1, ...c2,
+				x2, y2
+			);
+		});
+	},
+
+	postPaths(ctx, data) {
+		ctx.stroke();
+		this.drawPoints(ctx, data);
+	},
+
+	drawPoints(ctx, data) {
+		data.forEach((point) => {
+			this.prePoint(ctx, point);
+			this.drawPoint(ctx, point)
+			this.postPoint(ctx, point);
+		});
+	},
+
+	prePoint(ctx) {
+		ctx.beginPath();
+		this.pointStyle(ctx);
+	},
+
+	pointStyle(ctx) {
+		ctx.strokeStyle = 'white';
+		ctx.lineWidth = 2 * devicePixelRatio;
+	},
+
+	drawPoint(ctx, [x, y]) {
+		ctx.ellipse(x, y, 3 * devicePixelRatio, 3 * devicePixelRatio, 0, 0, τ);
+	},
+
+	postPoint(ctx) {
+		ctx.fill();
+		ctx.stroke();
+	}
+};
+
+function graph(canvas, data, options) {
+	options = defaults(options, defaultOptions);
+
 	var ctx = canvas.getContext('2d');
 	ctx.save();
-	ctx.translate(0, c.height);
+	ctx.translate(0, canvas.height);
 	ctx.scale(1, -1);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	var normd = normaliseAll(data, {scale: [canvas.width, canvas.height], bounds: options.bounds});
-	var gradients = data.map((_, i) => i).map(gradient(normd));
 
-	ctx.beginPath();
-	ctx.lineWidth = 1*devicePixelRatio;
-	group(2)(normd).forEach(([[x1, y1], [x2, y2]], i) => {
-		var g1 = gradients[i];
-		var g2 = gradients[i+1];
-
-		var x_25 = x1 + (x2 - x1) / 4;
-		var x_75 = x1 + 3 * (x2 - x1) / 4;
-
-		var y0_1 = y1 - g1 * x1;
-		var y0_2 = y2 - g2 * x2;
-
-		var c1 = [
-			x_25,
-			g1 * x_25 + y0_1
-		];
-		var c2 = [
-			x_75,
-			g2 * x_75 + y0_2
-		];
-
-		ctx.moveTo(x1, y1);
-		ctx.bezierCurveTo(
-			...c1, ...c2,
-			x2, y2
-		);
-	});
-
-	ctx.stroke();
-
-	normd.forEach(([x, y]) => {
-		ctx.beginPath();
-		ctx.ellipse(x, y, 3 * devicePixelRatio, 3 * devicePixelRatio, 0, 0, τ);
-		ctx.fill();
-		ctx.strokeStyle = 'white';
-		ctx.lineWidth = 2 * devicePixelRatio;
-		ctx.stroke();
-	});
+	options.prePaths(ctx, normd);
+	options.drawPaths(ctx, normd);
+	options.postPaths(ctx, normd);
 
 	ctx.restore();
 }
 
-var c = document.createElement('canvas');
-var dims = [window.innerWidth, 100];
-[c.width, c.height] = dims.map(x => x * window.devicePixelRatio);
-[c.style.width, c.style.height] = dims.map(x => x + 'px');
-document.body.appendChild(c);
-
-
-var data = Array.from(Array(20)).map((_, i) => [
-	Date.now() - 20000 + i * 1000, Math.random()
-]);
-
-setInterval(function () {
-	if(data[data.length - 1][0] < Date.now() - 1000) {
-		data.push([Date.now(), Math.random()]);
-	}
-
-	if(data[0][0] < Date.now() - 22000) data.shift();
-}, 1000);
-
-(function draw() {
-	graph(c, data, {bounds: [[Date.now() - 20000, Date.now() - 2000], [0, 1]]});
-	requestAnimationFrame(draw);
-}());
+module.exports = graph;
