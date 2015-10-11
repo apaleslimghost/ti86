@@ -26,7 +26,7 @@ function create(fg) {
 
 
 	(function draw() {
-		graph(c, data, {bounds: [[Date.now() - 20000, Date.now() - 2000], [0, 1]], pathStyle(ctx) {
+		graph({canvas: c, bounds: [[Date.now() - 20000, Date.now() - 2000], [0, 1]], pathStyle(ctx) {
 			ctx.lineWidth = 2 * devicePixelRatio;
 			ctx.strokeStyle = fg;
 		}, pre(ctx) {
@@ -46,7 +46,7 @@ function create(fg) {
 			ctx.fillStyle = fg;
 			ctx.ellipse(x, y, 2 * devicePixelRatio, 2 * devicePixelRatio, 0, 0, 2 * Math.PI);
 			ctx.fill();
-		}, postPoint() {}, prePoint() {}});
+		}, postPoint() {}, prePoint() {}}, data);
 		requestAnimationFrame(draw);
 	}());
 }

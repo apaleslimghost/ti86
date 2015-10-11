@@ -133,15 +133,15 @@ var defaultOptions = {
 	}
 };
 
-function graph(canvas, data, options) {
+function graph(options, data) {
 	options = defaults(options, defaultOptions);
 
-	var ctx = canvas.getContext('2d');
+	var ctx = options.canvas.getContext('2d');
 	ctx.save();
 
-	options.pre(ctx, canvas);
+	options.pre(ctx);
 	
-	var normd = normaliseAll(data, {scale: [canvas.width, canvas.height], bounds: options.bounds});
+	var normd = normaliseAll(data, {scale: [ctx.canvas.width, ctx.canvas.height], bounds: options.bounds});
 
 	options.prePaths(ctx, normd);
 	options.drawPaths(ctx, normd);
