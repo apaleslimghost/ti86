@@ -1,5 +1,10 @@
-const defaults = require('defaults');
 const τ = 2 * Math.PI;
+
+var defaults = (d, s) => {
+	var o = Object.assign({}, s);
+	Object.assign(o, d);
+	return o;
+}
 
 var bounds = xs => xs.reduce(([min, max], x) => [
 	Math.min(min, x),
