@@ -138,7 +138,7 @@ var defaultOptions = {
 	}
 };
 
-function graph(options, data) {
+function graph(options, ...series) {
 	options = defaults(options, defaultOptions);
 
 	var ctx = options.canvas.getContext('2d');
@@ -146,11 +146,18 @@ function graph(options, data) {
 
 	options.pre(ctx);
 	
-	var normd = normaliseAll(data, {scale: [ctx.canvas.width, ctx.canvas.height], bounds: options.bounds});
+	series.forEach(data => {
+		var seriesOpts = defaults(data.options, options);
+		if(data.data) {
+			data = data.data;
+		}
 
-	options.prePaths(ctx, normd);
-	options.drawPaths(ctx, normd);
-	options.postPaths(ctx, normd);
+		var normd = normaliseAll(data, {scale: [ctx.canvas.width, ctx.canvas.height], bounds: seriesOpts.bounds});
+
+		seriesOpts.prePaths(ctx, normd);
+		seriesOpts.drawPaths(ctx, normd);
+		seriesOpts.postPaths(ctx, normd);
+	});
 
 	options.post(ctx);
 
