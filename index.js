@@ -11,7 +11,7 @@ var getBounds = xs => xs.reduce(([min, max], x) => [
 	Math.max(max, x)
 ], [Infinity, -Infinity]);
 
-var normalise = (scale, min, max) => x => scale * (x - min) / (max - min);
+var normalise = ({scale, bounds: [min, max]}) => x => scale * (x - min) / (max - min);
 
 var zipWith = fn => (xs, ys) => { 
 	var out = [];
@@ -27,13 +27,13 @@ var id = a => a;
 
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
-var normaliseAll = (data, options = {}) => transpose(
+var normaliseAll = (data, options) => transpose(
 	transpose(data)
 	.map((xs, i) => xs.map(
-		normalise(
-			options.scale ? options.scale[i] : 1,
-			...(options.bounds && options.bounds[i] ? options.bounds[i] : getBounds(xs))
-		)
+		normalise({
+			scale: options.scale[i],
+			bounds: options.bounds[i]
+		})
 	))
 );
 
