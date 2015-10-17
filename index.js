@@ -6,7 +6,7 @@ var defaults = (d, s) => {
 	return o;
 }
 
-var bounds = xs => xs.reduce(([min, max], x) => [
+var getBounds = xs => xs.reduce(([min, max], x) => [
 	Math.min(min, x),
 	Math.max(max, x)
 ], [Infinity, -Infinity]);
@@ -21,6 +21,10 @@ var zipWith = fn => (xs, ys) => {
 	return out;
 };
 
+var concatMap = (f, xs) => xs.reduce((ys, x) => ys.concat(f(x)), []);
+
+var id = a => a;
+
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
 var normaliseAll = (data, options = {}) => transpose(
@@ -28,7 +32,7 @@ var normaliseAll = (data, options = {}) => transpose(
 	.map((xs, i) => xs.map(
 		normalise(
 			options.scale ? options.scale[i] : 1,
-			...(options.bounds ? options.bounds[i] : bounds(xs))
+			...(options.bounds && options.bounds[i] ? options.bounds[i] : getBounds(xs))
 		)
 	))
 );
@@ -145,14 +149,17 @@ function graph(options, ...series) {
 	ctx.save();
 
 	options.pre(ctx);
-	
+
+	var scale = [ctx.canvas.width, ctx.canvas.height];
+	var bounds = transpose(concatMap(data => data.data || data, series)).map(getBounds).map((b, i) => options.bounds[i] || b);
+
 	series.forEach(data => {
 		var seriesOpts = defaults(data.options, options);
 		if(data.data) {
 			data = data.data;
 		}
 
-		var normd = normaliseAll(data, {scale: [ctx.canvas.width, ctx.canvas.height], bounds: seriesOpts.bounds});
+		var normd = normaliseAll(data, {scale, bounds});
 
 		seriesOpts.prePaths(ctx, normd);
 		seriesOpts.drawPaths(ctx, normd);

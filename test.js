@@ -1,4 +1,5 @@
 var graph = require('./');
+var genColor = require('@quarterto/pretty-color-gen');
 
 document.body.style.background = '#44505B';
 
@@ -50,10 +51,10 @@ c.style.top = '10px';
 c.style.left = '0px';
 document.body.appendChild(c);
 
-var data = require('pleasejs').make_color({colors_returned: 4}).map(create);
+var data = Array.from('abcd').map(a => genColor(a, {saturation: .5, lightness: .75})).map(create);
 
 (function draw() {
-	var bounds = [[Date.now() - 20000, Date.now() - 2000], [0, 1]];
+	var bounds = [[Date.now() - 20000, Date.now() - 2000]];
 	graph({canvas: c, bounds}, ...data);
 	requestAnimationFrame(draw);
 }());
