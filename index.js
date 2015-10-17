@@ -11,7 +11,9 @@ var getBounds = xs => xs.reduce(([min, max], x) => [
 	Math.max(max, x)
 ], [Infinity, -Infinity]);
 
-var normalise = ({scale, bounds: [min, max]}) => x => scale * (x - min) / (max - min);
+var normalise = ({scale, bounds: [min, max], margin: [start, end]}) => (
+	x => start + (scale - start - end) * (x - min) / (max - min)
+);
 
 var zipWith = fn => (xs, ys) => { 
 	var out = [];
@@ -32,7 +34,8 @@ var normaliseAll = (data, options) => transpose(
 	.map((xs, i) => xs.map(
 		normalise({
 			scale: options.scale[i],
-			bounds: options.bounds[i]
+			bounds: options.bounds[i],
+			margin: [options.margin[1 - i], options.margin[3 - i]],
 		})
 	))
 );
@@ -62,7 +65,15 @@ var gradient = xs => i => (
 	: /*otherwise*/        rawGrad([xs[i-1], xs[i+1]])
 );
 
+var expandMargin = xs => ({
+	1: [xs[0], xs[0], xs[0], xs[0]],
+	2: [xs[0], xs[1], xs[0], xs[1]],
+	4: xs
+}[xs.length]);
+
 var defaultOptions = {
+	margin: [5],
+
 	pre(ctx) {
 		ctx.translate(0, ctx.canvas.height);
 		ctx.scale(1, -1);
@@ -152,6 +163,7 @@ function graph(options, ...series) {
 
 	var scale = [ctx.canvas.width, ctx.canvas.height];
 	var bounds = transpose(concatMap(data => data.data || data, series)).map(getBounds).map((b, i) => options.bounds[i] || b);
+	var margin = expandMargin(options.margin);
 
 	series.forEach(data => {
 		var seriesOpts = defaults(data.options, options);
@@ -159,7 +171,7 @@ function graph(options, ...series) {
 			data = data.data;
 		}
 
-		var normd = normaliseAll(data, {scale, bounds});
+		var normd = normaliseAll(data, {scale, bounds, margin});
 
 		seriesOpts.prePaths(ctx, normd);
 		seriesOpts.drawPaths(ctx, normd);
