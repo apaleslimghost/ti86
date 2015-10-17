@@ -71,6 +71,14 @@ var expandMargin = xs => ({
 	4: xs
 }[xs.length]);
 
+var ile = n => ([min, max]) => [
+	min,
+	...Array.from(Array(n - 1)).map((_, i) => min + (i + 1) * (max - min) / n),
+	max
+];
+
+var quartile = ile(4);
+
 var defaultOptions = {
 	margin: [5],
 
@@ -97,8 +105,7 @@ var defaultOptions = {
 			var g1 = this.gradients[i];
 			var g2 = this.gradients[i+1];
 
-			var x_25 = x1 + (x2 - x1) / 4;
-			var x_75 = x1 + 3 * (x2 - x1) / 4;
+			var [_, x_25, _, x_75, _] = quartile([x1, x2]);
 
 			var y0_1 = y1 - g1 * x1;
 			var y0_2 = y2 - g2 * x2;
