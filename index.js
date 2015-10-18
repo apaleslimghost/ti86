@@ -11,8 +11,11 @@ var getBounds = xs => xs.reduce(([min, max], x) => [
 	Math.max(max, x)
 ], [Infinity, -Infinity]);
 
-var normalise = ({scale, bounds: [min, max], margin: [start, end]}) => (
-	x => start + (scale - start - end) * (x - min) / (max - min)
+var normalise = ({inverse, scale, bounds: [min, max], margin: [start, end]}) => (
+	x => {
+		var n = start + (scale - start - end) * (x - min) / (max - min);
+		return inverse ? scale - n : n;
+	}
 );
 
 var zipWith = fn => (xs, ys) => { 
@@ -29,14 +32,17 @@ var id = a => a;
 
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
+var axisOptions = (options, i) => ({
+	scale: options.scale[i],
+	bounds: options.bounds[i],
+	margin: [options.margin[1 - i], options.margin[3 - i]],
+	inverse: i === 1,
+});
+
 var normaliseAll = (data, options) => transpose(
 	transpose(data)
 	.map((xs, i) => xs.map(
-		normalise({
-			scale: options.scale[i],
-			bounds: options.bounds[i],
-			margin: [options.margin[1 - i], options.margin[3 - i]],
-		})
+		normalise(axisOptions(options, i))
 	))
 );
 
@@ -80,11 +86,9 @@ var ile = n => ([min, max]) => [
 var quartile = ile(4);
 
 var defaultOptions = {
-	margin: [5],
+	margin: [10],
 
 	pre(ctx) {
-		ctx.translate(0, ctx.canvas.height);
-		ctx.scale(1, -1);
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	},
 
@@ -157,6 +161,38 @@ var defaultOptions = {
 	postPoint(ctx) {
 		ctx.fill();
 		ctx.stroke();
+	},
+
+	yAxisTicks: 3,
+
+	drawYAxis(ctx, options) {
+		var {bounds, scale, margin} = options;
+		var points = ile(this.yAxisTicks - 1)(bounds);
+		var labels = points.map(this.yAxisLabel, this);
+		this.yAxisStyle(ctx);
+
+		var measurements = labels.map(label => ctx.measureText(label));
+		var textWidth = measurements.map(m => m.width).reduce((a, b) => Math.max(a, b), -Infinity);
+		ctx.clearRect(0, 0, textWidth + 30, ctx.canvas.height);
+		labels.forEach((label, i) => {
+			var {height} = measurements[i];
+			var y = normalise(options)(points[i]);
+			ctx.fillText(label, textWidth + 5, y, textWidth);
+			ctx.beginPath();
+			ctx.moveTo(textWidth + 10, y);
+			ctx.lineTo(textWidth + 25, y);
+			ctx.stroke();
+		});
+	},
+
+	yAxisLabel(value) {
+		return value.toFixed(2).toString(10);
+	},
+
+	yAxisStyle(ctx) {
+		ctx.textAlign = 'right';
+		ctx.textBaseline = 'middle';
+		ctx.font = `${10 * window.devicePixelRatio}px sans-serif`;
 	}
 };
 
@@ -184,6 +220,8 @@ function graph(options, ...series) {
 		seriesOpts.drawPaths(ctx, normd);
 		seriesOpts.postPaths(ctx, normd);
 	});
+
+	options.drawYAxis(ctx, axisOptions({scale, bounds, margin}, 1));
 
 	options.post(ctx);
 
