@@ -37,7 +37,7 @@ function create(fg) {
 				ctx.fill();
 			},
 			postPoint() {},
-			prePoint() {}
+			prePoint() {}	
 		}
 	}
 }
@@ -55,7 +55,16 @@ var data = Array.from('abcd').map(a => genColor(a, {saturation: .5, lightness: .
 
 (function draw() {
 	var bounds = [[Date.now() - 20000, Date.now() - 2000], [0,1]];
-	graph({canvas: c, bounds}, ...data);
+	graph({canvas: c, bounds,
+				yAxisStyle(ctx) {
+					ctx.textAlign = 'right';
+					ctx.textBaseline = 'middle';
+					ctx.font = `300 ${12 * window.devicePixelRatio}px Lato`;
+					ctx.strokeStyle = ctx.fillStyle = 'white';
+					ctx.lineCap = 'round';
+					ctx.lineWidth = 1.5 * devicePixelRatio;
+				}
+	}, ...data);
 	requestAnimationFrame(draw);
 }());
 

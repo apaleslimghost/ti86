@@ -177,12 +177,16 @@ var defaultOptions = {
 		labels.forEach((label, i) => {
 			var {height} = measurements[i];
 			var y = normalise(options)(points[i]);
-			this.yAxisTick(ctx, label, y, textWidth);
+			this.yAxisDrawLabel(ctx, label, y, textWidth);
+			this.yAxisDrawTick(ctx, y, textWidth);
 		});
 	},
 
-	yAxisTick(ctx, label, y, width) {
+	yAxisDrawLabel(ctx, label, y, width) {
 		ctx.fillText(label, width + 5, y, width);
+	},
+
+	yAxisDrawTick(ctx, y, width) {
 		ctx.beginPath();
 		ctx.moveTo(width + 10, y);
 		ctx.lineTo(width + 25, y);
