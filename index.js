@@ -173,7 +173,7 @@ var defaultOptions = {
 
 		var measurements = labels.map(label => ctx.measureText(label));
 		var textWidth = measurements.map(m => m.width).reduce((a, b) => Math.max(a, b), -Infinity);
-		ctx.clearRect(0, 0, textWidth + 30, ctx.canvas.height);
+		ctx.clearRect(0, 0, textWidth + 20 * devicePixelRatio, ctx.canvas.height);
 		labels.forEach((label, i) => {
 			var {height} = measurements[i];
 			var y = normalise(options)(points[i]);
@@ -183,13 +183,13 @@ var defaultOptions = {
 	},
 
 	yAxisDrawLabel(ctx, label, y, width) {
-		ctx.fillText(label, width + 5, y, width);
+		ctx.fillText(label, width + 5 * devicePixelRatio, y, width);
 	},
 
 	yAxisDrawTick(ctx, y, width) {
 		ctx.beginPath();
-		ctx.moveTo(width + 10, y);
-		ctx.lineTo(width + 25, y);
+		ctx.moveTo(width + 10 * devicePixelRatio, y);
+		ctx.lineTo(width + 15 * devicePixelRatio, y);
 		ctx.stroke();
 	},
 
