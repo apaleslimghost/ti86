@@ -27,9 +27,8 @@ var zipWith = fn => (xs, ys) => {
 };
 
 var concatMap = (f, xs) => xs.reduce((ys, x) => ys.concat(f(x)), []);
-
 var id = a => a;
-
+var add = (a, b) => a + b;
 var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0].map(() => []));
 
 var axisOptions = (options, i) => ({
@@ -168,20 +167,28 @@ var defaultOptions = {
 
 	yAxisTicks: 3,
 
-	drawYAxis(ctx, options) {
+	yAxisPrecompute(ctx, options) {
 		var {bounds, scale, margin} = options;
 		var points = ile(this.yAxisTicks - 1)(bounds);
 		var labels = points.map(this.yAxisLabel, this);
 		this.yAxisStyle(ctx);
 
 		var measurements = labels.map(label => ctx.measureText(label));
-		var textWidth = measurements.map(m => m.width).reduce((a, b) => Math.max(a, b), -Infinity);
-		ctx.clearRect(0, 0, textWidth + 20 * devicePixelRatio, ctx.canvas.height);
-		labels.forEach((label, i) => {
-			var {height} = measurements[i];
-			var y = normalise(options)(points[i]);
-			this.yAxisDrawLabel(ctx, label, y, textWidth);
-			this.yAxisDrawTick(ctx, y, textWidth);
+		var textWidth = measurements.map(m => m.width).reduce((a, b) => Math.max(a, b), 0);
+
+		return {
+			width: textWidth + 20 * devicePixelRatio,
+			labels, points, textWidth
+		};
+	},
+
+	drawYAxis(ctx, yAxis, options) {
+		this.yAxisStyle(ctx);
+		ctx.clearRect(0, 0, yAxis.width, ctx.canvas.height);
+		yAxis.labels.forEach((label, i) => {
+			var y = normalise(options)(yAxis.points[i]);
+			this.yAxisDrawLabel(ctx, label, y, yAxis.textWidth);
+			this.yAxisDrawTick(ctx, y, yAxis.textWidth);
 		});
 	},
 
@@ -204,7 +211,7 @@ var defaultOptions = {
 		ctx.textAlign = 'right';
 		ctx.textBaseline = 'middle';
 		ctx.font = `${10 * window.devicePixelRatio}px sans-serif`;
-	}
+	},
 };
 
 function graph(options, ...series) {
@@ -218,6 +225,12 @@ function graph(options, ...series) {
 	var scale = [ctx.canvas.width, ctx.canvas.height];
 	var bounds = transpose(concatMap(data => data.data || data, series)).map(getBounds).map((b, i) => options.bounds[i] || b);
 	var margin = expandMargin(options.margin);
+	var yAxis = options.yAxisPrecompute(ctx, axisOptions({scale, bounds, margin}, 1));
+	var marginPlusGutter = zipWith(add)(margin, [
+		0, 0,
+		0, // should be height of x axis
+		yAxis.width
+	]);
 
 	series.forEach(data => {
 		var seriesOpts = defaults(data.options, options);
@@ -225,14 +238,14 @@ function graph(options, ...series) {
 			data = data.data;
 		}
 
-		var normd = normaliseAll(data, {scale, bounds, margin});
+		var normd = normaliseAll(data, {scale, bounds, margin: marginPlusGutter});
 
 		seriesOpts.prePaths(ctx, normd);
 		seriesOpts.drawPaths(ctx, normd);
 		seriesOpts.postPaths(ctx, normd);
 	});
 
-	options.drawYAxis(ctx, axisOptions({scale, bounds, margin}, 1));
+	options.drawYAxis(ctx, yAxis, axisOptions({scale, bounds, margin}, 1));
 
 	options.post(ctx);
 
