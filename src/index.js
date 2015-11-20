@@ -210,7 +210,10 @@ var defaultOptions = {
 	yAxisStyle(ctx) {
 		ctx.textAlign = 'right';
 		ctx.textBaseline = 'middle';
+		ctx.strokeStyle = ctx.fillStyle = 'black';
 		ctx.font = `${10 * window.devicePixelRatio}px sans-serif`;
+		ctx.lineCap = 'round';
+		ctx.lineWidth = 1.5 * devicePixelRatio;
 	},
 };
 
