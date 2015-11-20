@@ -89,6 +89,7 @@ var quartile = ile(4);
 
 var defaultOptions = {
 	margin: [10],
+	bounds: [],
 
 	pre(ctx) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
