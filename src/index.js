@@ -59,6 +59,8 @@ var rawGrad = ([[x1, y1], [x2, y2]]) => (y2 - y1)/(x2 - x1);
 var isDerivZero = ([y1, y2, y3]) => (
 	   y1 < y2 && y3 < y2
 	|| y1 > y2 && y3 > y2
+	|| y1 === y2
+	|| y2 === y3
 );
 
 var gradient = xs => i => (
