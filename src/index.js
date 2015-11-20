@@ -35,7 +35,7 @@ var transpose = rows => rows.reduce(zipWith((col, x) => col.concat([x])), rows[0
 var axisOptions = (options, i) => ({
 	scale: options.scale[i],
 	bounds: options.bounds[i],
-	margin: [options.margin[1 - i], options.margin[3 - i]],
+	margin: [options.margin[3 - 3*i], options.margin[1 + i]],
 	inverse: i === 1,
 });
 
