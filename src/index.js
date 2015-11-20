@@ -167,9 +167,13 @@ var defaultOptions = {
 
 	yAxisTicks: 3,
 
+	yAxisPoints(bounds) {
+		return ile(this.yAxisTicks - 1)(bounds);
+	},
+
 	yAxisPrecompute(ctx, options) {
 		var {bounds, scale, margin} = options;
-		var points = ile(this.yAxisTicks - 1)(bounds);
+		var points = this.yAxisPoints(bounds);
 		var labels = points.map(this.yAxisLabel, this);
 		this.yAxisStyle(ctx);
 
