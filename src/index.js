@@ -166,7 +166,6 @@ var defaultOptions = {
 	},
 
 	yAxisTicks: 3,
-
 	yAxisPoints(bounds) {
 		return ile(this.yAxisTicks - 1)(bounds);
 	},
@@ -211,13 +210,71 @@ var defaultOptions = {
 		return value.toFixed(2).toString(10);
 	},
 
-	yAxisStyle(ctx) {
-		ctx.textAlign = 'right';
-		ctx.textBaseline = 'middle';
+	axisFontSize() {
+		return 10 * devicePixelRatio;
+	},
+
+	commonAxisStyle(ctx) {
 		ctx.strokeStyle = ctx.fillStyle = 'black';
-		ctx.font = `${10 * window.devicePixelRatio}px sans-serif`;
+		ctx.font = `${this.axisFontSize()}px sans-serif`;
 		ctx.lineCap = 'round';
 		ctx.lineWidth = 1.5 * devicePixelRatio;
+	},
+
+	yAxisStyle(ctx) {
+		this.commonAxisStyle(ctx);
+		ctx.textAlign = 'right';
+		ctx.textBaseline = 'middle';
+	},
+
+	xAxisTicks: 3,
+	xAxisPoints(bounds) {
+		return ile(this.xAxisTicks - 1)(bounds);
+	},
+
+	xAxisPrecompute(ctx, options) {
+		var {bounds, scale, margin} = options;
+		var points = this.xAxisPoints(bounds);
+		var labels = points.map(this.xAxisLabel, this);
+		this.xAxisStyle(ctx);
+
+		var textHeight = this.axisFontSize() * 1.5; //ish
+
+		return {
+			height: textHeight + 20 * devicePixelRatio,
+			labels, points, textHeight
+		};
+	},
+
+	drawXAxis(ctx, xAxis, options) {
+		this.xAxisStyle(ctx);
+		ctx.clearRect(0, ctx.canvas.height - xAxis.height, ctx.canvas.width, xAxis.height);
+		xAxis.labels.forEach((label, i) => {
+			var x = normalise(options)(xAxis.points[i]);
+			this.xAxisDrawLabel(ctx, label, x, xAxis.textHeight);
+			this.xAxisDrawTick(ctx, x, xAxis.textHeight);
+		});
+	},
+
+	xAxisDrawLabel(ctx, label, x, height) {
+		ctx.fillText(label, x, ctx.canvas.height - height + 15 * devicePixelRatio);
+	},
+
+	xAxisDrawTick(ctx, x, height) {
+		ctx.beginPath();
+		ctx.moveTo(x, ctx.canvas.height - height + 5 * devicePixelRatio);
+		ctx.lineTo(x, ctx.canvas.height - height + 10 * devicePixelRatio);
+		ctx.stroke();
+	},
+
+	xAxisLabel(value) {
+		return value.toFixed(2).toString(10);
+	},
+
+	xAxisStyle(ctx) {
+		this.commonAxisStyle(ctx);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
 	},
 };
 
@@ -232,10 +289,12 @@ function graph(options, ...series) {
 	var scale = [ctx.canvas.width, ctx.canvas.height];
 	var bounds = transpose(concatMap(data => data.data || data, series)).map(getBounds).map((b, i) => options.bounds[i] || b);
 	var margin = expandMargin(options.margin);
+	var xAxis = options.xAxisPrecompute(ctx, axisOptions({scale, bounds, margin}, 1));
+	console.log(xAxis);
 	var yAxis = options.yAxisPrecompute(ctx, axisOptions({scale, bounds, margin}, 1));
 	var marginPlusGutter = zipWith(add)(margin, [
 		0, 0,
-		0, // should be height of x axis
+		xAxis.height,
 		yAxis.width
 	]);
 
@@ -252,6 +311,7 @@ function graph(options, ...series) {
 		seriesOpts.postPaths(ctx, normd);
 	});
 
+	options.drawXAxis(ctx, xAxis, axisOptions({scale, bounds, margin}, 0));
 	options.drawYAxis(ctx, yAxis, axisOptions({scale, bounds, margin}, 1));
 
 	options.post(ctx);
